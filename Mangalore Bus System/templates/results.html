@@ -16,20 +16,44 @@
     <hr class="border-light mb-4">
 
     {% if results %}
-      <div class="row">
-        {% for bus, route in results.items() %}
-          <div class="col-md-12 mb-3">
-            <div class="card bg-secondary text-light shadow">
-              <div class="card-header fw-bold text-dark bg-warning">Bus No: {{ bus }}</div>
-              <div class="card-body">
-                <p class="card-text">{{ ' → '.join(route) }}</p>
-              </div>
+      {% if mode == 'connecting' %}
+        <!-- 🚏 Connecting Routes via State Bank -->
+        <div class="alert alert-info text-dark fw-semibold text-center">
+          No direct buses found 😞<br>
+          Showing connecting routes via <span class="text-warning">State Bank</span> 🏦
+        </div>
+
+        {% for pair in results %}
+          <div class="card bg-secondary text-light shadow mb-4">
+            <div class="card-header bg-warning text-dark fw-bold">Connection Option</div>
+            <div class="card-body">
+              <p class="card-text mb-2">
+                <strong>1️⃣ {{ pair.first_leg.bus }}</strong>: {{ ' → '.join(pair.first_leg.route) }}
+              </p>
+              <p class="card-text">
+                <strong>2️⃣ {{ pair.second_leg.bus }}</strong>: {{ ' → '.join(pair.second_leg.route) }}
+              </p>
             </div>
           </div>
         {% endfor %}
-      </div>
+
+      {% else %}
+        <!-- 🚍 Direct Bus Results -->
+        <div class="row">
+          {% for bus, route in results.items() %}
+            <div class="col-md-12 mb-3">
+              <div class="card bg-secondary text-light shadow">
+                <div class="card-header fw-bold text-dark bg-warning">Bus No: {{ bus }}</div>
+                <div class="card-body">
+                  <p class="card-text">{{ ' → '.join(route) }}</p>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
     {% else %}
-      <div class="alert alert-danger text-center">No direct route found 😞</div>
+      <div class="alert alert-danger text-center">No routes found 😞</div>
     {% endif %}
 
     <div class="text-center mt-4">

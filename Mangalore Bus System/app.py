@@ -129,21 +129,38 @@ def search():
                 results[bus] = route
         return render_template('results.html', origin=origin.title(), destination=None, results=results, mode='one_stop')
 
-    # Case 3: Two stops entered — check both directions
+    # Case 3: Two stops entered — check for direct routes
     for bus, route in ROUTES.items():
         route_lower = [r.lower() for r in route]
 
-        # Match even if user types partial stop name
         origin_matches = [stop for stop in route_lower if origin in stop]
         dest_matches = [stop for stop in route_lower if destination in stop]
 
         if origin_matches and dest_matches:
             o_idx = route_lower.index(origin_matches[0])
             d_idx = route_lower.index(dest_matches[0])
-            # Include both directions
-            results[bus] = route
+            if o_idx < d_idx:
+                results[bus] = route
 
-    return render_template('results.html', origin=origin.title(), destination=destination.title(), results=results, mode='route')
+    # ✅ If no direct buses, try connecting via "State Bank"
+    if not results:
+        connecting_routes = []
+        for bus1, route1 in ROUTES.items():
+            r1_lower = [r.lower() for r in route1]
+            if any(origin in stop for stop in r1_lower) and "state bank".lower() in r1_lower:
+                for bus2, route2 in ROUTES.items():
+                    r2_lower = [r.lower() for r in route2]
+                    if "state bank".lower() in r2_lower and any(destination in stop for stop in r2_lower):
+                        connecting_routes.append({
+                            "first_leg": {"bus": bus1, "route": route1},
+                            "second_leg": {"bus": bus2, "route": route2}
+                        })
+
+        return render_template('results.html', origin=origin.title(), destination=destination.title(),
+                               results=connecting_routes, mode='connecting')
+
+    return render_template('results.html', origin=origin.title(), destination=destination.title(),
+                           results=results, mode='route')
 
 
 if __name__ == '__main__':
